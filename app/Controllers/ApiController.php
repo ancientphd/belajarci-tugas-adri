@@ -23,104 +23,60 @@ class ApiController extends ResourceController
         $this->transaction = new TransactionModel();
         $this->transaction_detail = new TransactionDetailModel();
     }
-    /**
-     * Return an array of resource objects, themselves in array format.
-     *
-     * @return ResponseInterface
-     */
-public function index()
-{
-    $data = [ 
-        'results' => [],
-        'status' => ["code" => 401, "description" => "Unauthorized"]
-    ];
 
-    $headers = $this->request->headers(); 
+    public function index()
+    {
+        $data = [ 
+            'results' => [],
+            'status' => ["code" => 401, "description" => "Unauthorized"]
+        ];
 
-    array_walk($headers, function (&$value, $key) {
-        $value = $value->getValue();
-    });
+        $key = $this->request->getHeaderLine('key');
 
-    if(array_key_exists("Key", $headers)){
-        if ($headers["Key"] == $this->apiKey) {
+        if ($key === $this->apiKey) {
             $penjualan = $this->transaction->findAll();
-            
-            foreach ($penjualan as &$pj) {
-                $pj['details'] = $this->transaction_detail->where('transaction_id', $pj['id'])->findAll();
-            }
+
+        foreach ($penjualan as &$pj) {
+            $details = $this->transaction_detail->where('transaction_id', $pj['id'])->findAll();
+            $pj['details'] = $details;
+
+            // ❗ Tambahkan ini untuk menghitung jumlah item
+            $pj['total_item'] = array_sum(array_column($details, 'jumlah'));
+        }
+
 
             $data['status'] = ["code" => 200, "description" => "OK"];
             $data['results'] = $penjualan;
-
         }
-    } 
 
-    return $this->respond($data);
-}
+        return $this->respond($data);
+    }
 
-    /**
-     * Return the properties of a resource object.
-     *
-     * @param int|string|null $id
-     *
-     * @return ResponseInterface
-     */
     public function show($id = null)
     {
         //
     }
 
-    /**
-     * Return a new resource object, with default properties.
-     *
-     * @return ResponseInterface
-     */
     public function new()
     {
         //
     }
 
-    /**
-     * Create a new resource object, from "posted" parameters.
-     *
-     * @return ResponseInterface
-     */
     public function create()
     {
         //
     }
 
-    /**
-     * Return the editable properties of a resource object.
-     *
-     * @param int|string|null $id
-     *
-     * @return ResponseInterface
-     */
     public function edit($id = null)
     {
         //
     }
 
-    /**
-     * Add or update a model resource, from "posted" properties.
-     *
-     * @param int|string|null $id
-     *
-     * @return ResponseInterface
-     */
     public function update($id = null)
     {
         //
     }
 
-    /**
-     * Delete the designated resource object from the model.
-     *
-     * @param int|string|null $id
-     *
-     * @return ResponseInterface
-     */
     public function delete($id = null)
     {
         //

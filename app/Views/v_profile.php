@@ -51,10 +51,16 @@ History Transaksi Pembelian <strong><?= $username ?></strong>
 	                                            <img src="<?php echo base_url() . "img/" . $item2['foto'] ?>" width="100px">
 	                                        <?php endif; ?>
 	                                        <strong><?= $item2['nama'] ?></strong>
-	                                        <?= number_to_currency($item2['harga'], 'IDR') ?>
+	                                        <span class="badge bg-primary">
+                                                <?= number_to_currency($item2['harga'], 'IDR') ?>
+                                            </span>
+
 	                                        <br>
 	                                        <?= "(" . $item2['jumlah'] . " pcs)" ?><br>
-	                                        <?= number_to_currency($item2['subtotal_harga'], 'IDR') ?>
+	                                        <span class="badge bg-primary">
+                                                <?= number_to_currency($item2['subtotal_harga'], 'IDR') ?>
+                                            </span>
+
 	                                        <hr>
 	                                    <?php 
 	                                    endforeach; 

@@ -33,16 +33,30 @@ class TransaksiController extends BaseController
 
     public function cart_add()
     {
-        $this->cart->insert(array(
-            'id'        => $this->request->getPost('id'),
-            'qty'       => 1,
-            'price'     => $this->request->getPost('harga'),
-            'name'      => $this->request->getPost('nama'),
-            'options'   => array('foto' => $this->request->getPost('foto'))
-        ));
-        session()->setflashdata('success', 'Produk berhasil ditambahkan ke keranjang. (<a href="' . base_url() . 'keranjang">Lihat</a>)');
-        return redirect()->to(base_url('/'));
-    }
+    $id     = $this->request->getPost('id');
+    $harga  = $this->request->getPost('harga');
+    $nama   = $this->request->getPost('nama');
+    $foto   = $this->request->getPost('foto');
+
+    $diskon = session()->get('diskon_nominal') ?? 0;
+
+    $hargaSetelahDiskon = max(0, $harga - $diskon); 
+
+    $this->cart->insert(array(
+        'id'        => $id,
+        'qty'       => 1,
+        'price'     => $hargaSetelahDiskon,
+        'name'      => $nama,
+        'options'   => array(
+            'foto' => $foto,
+            'original_price' => $harga,
+            'diskon' => $diskon
+        )
+    ));
+
+    session()->setFlashdata('success', 'Produk berhasil ditambahkan ke keranjang dengan diskon. (<a href="' . base_url() . 'keranjang">Lihat</a>)');
+    return redirect()->to(base_url('/'));
+}
 
     public function cart_clear()
     {
@@ -81,7 +95,7 @@ class TransaksiController extends BaseController
 
     public function getLocation()
 {
-		//keyword pencarian yang dikirimkan dari halaman checkout
+
     $search = $this->request->getGet('search');
 
     $response = $this->client->request(
@@ -100,11 +114,7 @@ class TransaksiController extends BaseController
 
 public function getCost()
 { 
-		//ID lokasi yang dikirimkan dari halaman checkout
     $destination = $this->request->getGet('destination');
-
-		//parameter daerah asal pengiriman, berat produk, dan kurir dibuat statis
-    //valuenya => 64999 : PEDURUNGAN TENGAH , 1000 gram, dan JNE
     $response = $this->client->request(
         'POST', 
         'https://rajaongkir.komerce.id/api/v1/calculate/domestic-cost', [
@@ -154,19 +164,23 @@ public function buy()
 
         $last_insert_id = $this->transaction->getInsertID();
 
-        foreach ($this->cart->contents() as $value) {
-            $dataFormDetail = [
-                'transaction_id' => $last_insert_id,
-                'product_id' => $value['id'],
-                'jumlah' => $value['qty'],
-                'diskon' => 0,
-                'subtotal_harga' => $value['qty'] * $value['price'],
-                'created_at' => date("Y-m-d H:i:s"),
-                'updated_at' => date("Y-m-d H:i:s")
-            ];
+    foreach ($this->cart->contents() as $value) {
+        $diskon = session('diskon_nominal') ?? 0;
+        $hargaSetelahDiskon = max(0, $value['price']); 
 
-            $this->transaction_detail->insert($dataFormDetail);
-        }
+    $dataFormDetail = [
+        'transaction_id' => $last_insert_id,
+        'product_id'     => $value['id'],
+        'jumlah'         => $value['qty'],
+        'diskon'         => $diskon,
+        'subtotal_harga' => $value['qty'] * $hargaSetelahDiskon,
+        'created_at'     => date("Y-m-d H:i:s"),
+        'updated_at'     => date("Y-m-d H:i:s")
+    ];
+
+    $this->transaction_detail->insert($dataFormDetail);
+}
+
 
         $this->cart->destroy();
  
