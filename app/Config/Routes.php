@@ -15,6 +15,7 @@ $routes->get('logout', 'AuthController::logout');
 $routes->get('produk', 'ProdukController::index', ['filter' => 'auth']);
 $routes->get('kategori', 'KategoriController::index', ['filter' => 'auth']);
 $routes->get('keranjang', 'TransaksiController::index', ['filter' => 'auth']);
+$routes->get('faq', 'FAQController::index', ['filter' => 'auth']);
 
 $routes->group('produk', ['filter' => 'auth'], function ($routes) { 
     $routes->get('', 'ProdukController::index');
@@ -50,7 +51,6 @@ $routes->get('get-location', 'TransaksiController::getLocation', ['filter' => 'a
 $routes->get('get-cost', 'TransaksiController::getCost', ['filter' => 'auth']);
 
 $routes->get('profile', 'Home::profile', ['filter' => 'auth']);
-$routes->get('faq', 'Home::faq', ['filter' => 'auth']);
 
 $routes->resource('api', ['controller' => 'apiController']);
 
